@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOOK ANIMATION STUDIOS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --M: #FF00FF;
+            --K: #000000;
+            --W: #FFFFFF;
+            --G: #00EA5E;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--M);
+            color: var(--W);
+            font-family: 'Anton', sans-serif;
+            overflow-x: hidden;
+            text-transform: uppercase;
+            cursor: crosshair;
+        }
+
+        /* ─── CURSOR ─── */
+        .cursor {
+            width: 14px; height: 14px;
+            background: var(--K);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: width 0.2s, height 0.2s;
+            mix-blend-mode: difference;
+        }
+        body:has(a:hover) .cursor, body:has(button:hover) .cursor {
+            width: 40px; height: 40px;
+        }
+
+        /* ─── LOADER ─── */
+        #loader {
+            position: fixed; inset: 0;
+            background: var(--K);
+            z-index: 10000;
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        #loader.hidden { opacity: 0; visibility: hidden; }
+        .loader-text {
+            font-size: clamp(3rem, 18vw, 9rem);
+            color: var(--M);
+            letter-spacing: -3px;
+            animation: loaderPulse 0.8s ease infinite alternate;
+        }
+        .loader-bar { width: min(200px, 60vw); height: 6px; background: #222; margin-top: 20px; overflow: hidden; }
+        .loader-fill { height: 100%; background: var(--M); animation: loaderFill 1.4s ease forwards; }
+        @keyframes loaderPulse { from { opacity: 0.4; } to { opacity: 1; } }
+        @keyframes loaderFill { from { width: 0; } to { width: 100%; } }
+
+        /* ─── NAV DESKTOP ─── */
+        nav {
+            background: var(--K);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 3000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            border-bottom: 4px solid var(--W);
+            height: 70px;
+        }
+        .nav-logo { font-size: 1.4rem; color: var(--M); letter-spacing: 2px; }
+        .nav-links { display: flex; }
+        nav button {
+            background: none; border: none; color: var(--W);
+            padding: 0 24px; height: 70px;
+            font-family: 'Anton', sans-serif;
+            font-size: 1.1rem; cursor: pointer;
+            letter-spacing: 1px;
+            position: relative;
+            transition: color 0.2s;
+        }
+        nav button::after {
+            content: ''; position: absolute;
+            bottom: 0; left: 0;
+            width: 0; height: 4px;
+            background: var(--M);
+            transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        nav button:hover::after, nav button.active::after { width: 100%; }
+        nav button.active, nav button:hover { color: var(--M); }
+
+        /* ─── TABS ─── */
+        .tab-content { display: none; padding-top: 70px; min-height: 100vh; }
+        .tab-content.active { display: block; animation: tabIn 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+        @keyframes tabIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── TICKER ─── */
+        .ticker-wrap {
+            background: var(--K);
+            border-bottom: 3px solid var(--M);
+            overflow: hidden;
+            white-space: nowrap;
+            padding: 10px 0;
+        }
+        .ticker-inner { display: inline-block; animation: ticker 25s linear infinite; }
+        .ticker-inner span {
+            font-size: 0.9rem; color: var(--M);
+            margin-right: 60px; letter-spacing: 3px;
+            font-family: 'Space Mono', monospace;
+        }
+        .ticker-inner span::before { content: '◆ '; color: var(--W); }
+        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        /* ─── HERO ─── */
+        .hero { position: relative; overflow: hidden; }
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: end;
+            padding: 60px 50px 0 50px;
+            gap: 20px;
+        }
+        .hero-title {
+            font-size: clamp(6rem, 22vw, 18rem);
+            line-height: 0.82;
+            letter-spacing: -6px;
+            color: var(--K);
+        }
+        .hero-title .outline { -webkit-text-stroke: 4px var(--K); color: transparent; }
+        .hero-side { display: flex; flex-direction: column; gap: 12px; padding-bottom: 10px; max-width: 260px; }
+        .hero-badge {
+            background: var(--K); color: var(--W);
+            padding: 10px 16px; font-size: 0.85rem;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 1px; line-height: 1.5; text-transform: none;
+        }
+        .hero-year { font-size: 8rem; color: var(--K); line-height: 1; letter-spacing: -4px; opacity: 0.15; }
+
+        .divider-bar {
+            height: 80px; background: var(--K);
+            display: flex; align-items: center;
+            overflow: hidden; margin-top: 40px;
+            border-top: 4px solid var(--K);
+        }
+        .divider-scroll {
+            white-space: nowrap;
+            animation: divScroll 15s linear infinite;
+            font-size: 2.5rem; color: var(--M); letter-spacing: 4px;
+        }
+        @keyframes divScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        /* ─── EQUIPO ─── */
+        .equipo-header { padding: 60px 50px 30px; border-bottom: 4px solid var(--K); }
+        .equipo-header h1 { font-size: clamp(4rem, 12vw, 10rem); color: var(--K); line-height: 0.9; }
+
+        .miembro-row {
+            display: grid; grid-template-columns: auto 1fr auto;
+            align-items: center;
+            border-bottom: 4px solid var(--K);
+            background: var(--M);
+            transition: background 0.2s; overflow: hidden;
+        }
+        .miembro-row:hover { background: var(--K); }
+        .miembro-num {
+            font-family: 'Space Mono', monospace; font-size: 0.8rem;
+            color: var(--K); padding: 0 30px; opacity: 0.5;
+            transition: color 0.2s, opacity 0.2s;
+        }
+        .miembro-row:hover .miembro-num { color: var(--M); opacity: 1; }
+        .miembro-nombre {
+            font-size: clamp(3rem, 8vw, 7rem); padding: 20px 0;
+            color: var(--K); transition: color 0.2s; letter-spacing: -2px;
+        }
+        .miembro-row:hover .miembro-nombre { color: var(--W); }
+        .miembro-link {
+            background: var(--K); color: var(--W);
+            padding: 16px 30px; text-decoration: none;
+            font-size: 1rem; font-family: 'Space Mono', monospace;
+            margin-right: 40px; border: 3px solid var(--W);
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+            white-space: nowrap;
+        }
+        .miembro-row:hover .miembro-link { background: var(--M); color: var(--K); border-color: var(--M); }
+
+        /* ─── LEYENDAS ─── */
+        .leyendas-hero {
+            background: var(--K); padding: 80px 50px;
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 40px; align-items: center;
+            border-bottom: 4px solid var(--M);
+        }
+        .leyendas-hero h2 {
+            font-size: clamp(3rem, 8vw, 7rem);
+            color: var(--M); line-height: 0.9; letter-spacing: -2px;
+        }
+        .leyendas-hero p {
+            font-family: 'Space Mono', monospace;
+            text-transform: none; font-size: 1rem;
+            line-height: 1.7; color: #aaa;
+        }
+
+        /* ─── COMIC CARD ─── */
+        .comic-card {
+            display: grid; grid-template-columns: 1fr 1.5fr;
+            background: var(--W); color: var(--K);
+            margin: 40px; border: 8px solid var(--K);
+            box-shadow: 12px 12px 0 var(--K);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .comic-card:hover { transform: translate(-4px,-4px); box-shadow: 16px 16px 0 var(--K); }
+
+        .info-side {
+            padding: 50px; display: flex;
+            flex-direction: column; justify-content: space-between; gap: 20px;
+        }
+        .chapter-tag {
+            font-family: 'Space Mono', monospace; font-size: 0.75rem;
+            background: var(--M); color: var(--W);
+            padding: 6px 14px; display: inline-block; letter-spacing: 2px;
+        }
+        .info-side h2 { font-size: clamp(3rem, 6vw, 5rem); line-height: 0.9; letter-spacing: -2px; }
+        .desc-comic {
+            font-family: 'Space Mono', monospace; text-transform: none;
+            font-size: 0.95rem; line-height: 1.6; color: #333;
+            border-left: 4px solid var(--M); padding-left: 16px;
+        }
+        .price-row { display: flex; align-items: baseline; gap: 10px; }
+        .price-tag {
+            font-size: clamp(4rem, 10vw, 7rem);
+            color: var(--M); -webkit-text-stroke: 3px var(--K);
+            line-height: 1; letter-spacing: -3px;
+        }
+        .price-label { font-family: 'Space Mono', monospace; font-size: 0.8rem; color: #666; text-transform: none; }
+        .btn-reservar {
+            background: var(--K); color: var(--W);
+            padding: 22px; text-decoration: none;
+            display: block; text-align: center;
+            font-size: 1.8rem; letter-spacing: 2px;
+            border: 4px solid var(--K);
+            position: relative; overflow: hidden;
+        }
+        .btn-reservar::before {
+            content: ''; position: absolute; inset: 0;
+            background: var(--M); transform: translateX(-101%);
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .btn-reservar:hover::before { transform: translateX(0); }
+        .btn-reservar span { position: relative; z-index: 1; }
+        .btn-reservar:hover span { color: var(--K); }
+
+        /* ─── CARRUSEL ─── */
+        .media-side { background: var(--K); position: relative; overflow: hidden; min-height: 500px; }
+        .carousel-track { display: flex; height: 100%; transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
+        .carousel-slide { min-width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .carousel-slide img, .carousel-slide video { width: 100%; height: 100%; object-fit: cover; }
+        .slide-placeholder {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 6rem; opacity: 0.08; color: var(--W);
+            background: repeating-linear-gradient(45deg, #111 0px, #111 20px, #1a1a1a 20px, #1a1a1a 40px);
+        }
+        .carousel-nav { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 10; }
+        .c-dot { width: 10px; height: 10px; background: rgba(255,255,255,0.3); border: 2px solid var(--W); cursor: pointer; transition: background 0.2s; }
+        .c-dot.active { background: var(--M); border-color: var(--M); }
+        .c-arrow {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: var(--K); color: var(--W);
+            border: 3px solid var(--W);
+            padding: 12px 18px; cursor: pointer; z-index: 10; font-size: 1.4rem;
+            transition: background 0.2s, color 0.2s;
+        }
+        .c-arrow:hover { background: var(--M); color: var(--K); border-color: var(--M); }
+        .c-arrow.left { left: 15px; }
+        .c-arrow.right { right: 15px; }
+
+        /* ─── WEBTOON ─── */
+        .webtoon-section {
+            background: var(--G); color: var(--K);
+            margin: 40px; padding: 80px 40px;
+            text-align: center; border: 8px solid var(--K);
+            box-shadow: 12px 12px 0 var(--K);
+            position: relative; overflow: hidden;
+        }
+        .webtoon-section::before {
+            content: 'WEBTOON WEBTOON WEBTOON WEBTOON';
+            position: absolute; font-size: 8rem; opacity: 0.08;
+            white-space: nowrap; top: 50%; left: -20%;
+            transform: translateY(-50%) rotate(-6deg);
+            pointer-events: none; letter-spacing: -3px;
+        }
+        .webtoon-section h2 { font-size: clamp(3rem, 7vw, 6rem); line-height: 0.9; margin-bottom: 10px; }
+        .webtoon-sub { font-family: 'Space Mono', monospace; font-size: 1rem; text-transform: none; margin-bottom: 30px; opacity: 0.7; }
+        .btn-webtoon {
+            background: var(--K); color: var(--W);
+            padding: 28px 80px; text-decoration: none;
+            display: inline-block; font-size: 2.5rem;
+            border: 6px solid var(--K);
+            box-shadow: 6px 6px 0 rgba(0,0,0,0.3);
+            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+        .btn-webtoon:hover { background: var(--W); color: var(--K); transform: translate(-3px,-3px); box-shadow: 9px 9px 0 rgba(0,0,0,0.3); }
+
+        /* ─── MERCH ─── */
+        .merch-section {
+            min-height: calc(100vh - 70px);
+            position: relative; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column; background: var(--K);
+        }
+        .merch-bg-text {
+            position: absolute;
+            font-size: clamp(6rem, 16vw, 18rem);
+            white-space: nowrap; color: var(--M); opacity: 0.07;
+            top: 50%; transform: translateY(-50%) rotate(-8deg);
+            pointer-events: none; letter-spacing: -5px;
+            animation: bgSlow 30s linear infinite;
+        }
+        @keyframes bgSlow { 0% { transform: translateY(-50%) rotate(-8deg) translateX(0); } 100% { transform: translateY(-50%) rotate(-8deg) translateX(-30%); } }
+        .merch-content { position: relative; z-index: 2; text-align: center; padding: 40px; }
+        .merch-eyebrow { font-family: 'Space Mono', monospace; font-size: 0.85rem; color: var(--M); letter-spacing: 4px; margin-bottom: 20px; display: block; }
+        .merch-title { font-size: clamp(4rem, 16vw, 14rem); line-height: 0.85; color: var(--W); letter-spacing: -5px; margin-bottom: 10px; }
+        .merch-title .outline-w { -webkit-text-stroke: 3px var(--W); color: transparent; }
+        .merch-sub { font-family: 'Space Mono', monospace; text-transform: none; font-size: 1rem; color: #666; margin-bottom: 50px; }
+        .btn-store {
+            background: var(--M); color: var(--W);
+            padding: 35px 90px; font-size: clamp(1.8rem, 5vw, 3.5rem);
+            text-decoration: none; display: inline-block;
+            border: 8px solid var(--W);
+            box-shadow: 10px 10px 0 rgba(255,0,255,0.3);
+            letter-spacing: 2px;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.2s, color 0.2s;
+        }
+        .btn-store:hover { background: var(--W); color: var(--M); transform: translate(-4px,-4px); box-shadow: 14px 14px 0 rgba(255,0,255,0.3); }
+
+        .merch-marquee-wrap {
+            position: absolute; bottom: 0; width: 100%;
+            background: var(--M); border-top: 5px solid var(--W);
+            overflow: hidden; padding: 14px 0;
+        }
+        .merch-marquee { display: inline-block; white-space: nowrap; animation: mq 10s linear infinite; font-size: 1.2rem; color: var(--K); letter-spacing: 3px; }
+        .merch-marquee span { margin-right: 60px; }
+        @keyframes mq { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        /* ─── FOOTER ─── */
+        footer {
+            background: var(--K); border-top: 5px solid var(--W);
+            padding: 30px 50px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        footer span { font-family: 'Space Mono', monospace; font-size: 0.8rem; color: #555; text-transform: none; }
+        footer .footer-logo { font-size: 1.5rem; color: var(--M); }
+
+        /* ══════════════════════════════════════
+           RESPONSIVE MÓVIL — max 768px
+        ══════════════════════════════════════ */
+        @media (max-width: 768px) {
+
+            /* Sin cursor custom en touch */
+            .cursor { display: none; }
+            body { cursor: auto; }
+
+            /* ── NAV ──
+               Logo arriba centrado + 4 botones en fila abajo */
+            nav {
+                padding: 0;
+                height: auto;
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .nav-logo {
+                text-align: center;
+                padding: 9px 0 7px;
+                font-size: 1rem;
+                border-bottom: 2px solid #1a1a1a;
+            }
+            .nav-links {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+            }
+            nav button {
+                padding: 0;
+                height: 42px;
+                font-size: 0.72rem;
+                letter-spacing: 0.3px;
+                border-right: 1px solid #1a1a1a;
+            }
+            nav button:last-child { border-right: none; }
+            nav button::after { height: 3px; }
+
+            /* Nav ahora tiene ~88px de alto */
+            .tab-content { padding-top: 88px; }
+
+            /* ── TICKER ── */
+            .ticker-wrap { padding: 7px 0; }
+            .ticker-inner span { font-size: 0.7rem; margin-right: 30px; letter-spacing: 2px; }
+
+            /* ── HERO ── */
+            .hero-grid {
+                grid-template-columns: 1fr;
+                padding: 22px 16px 0;
+                gap: 14px;
+            }
+            .hero-title {
+                font-size: clamp(4rem, 23vw, 7rem);
+                letter-spacing: -3px;
+            }
+            .hero-title .outline { -webkit-text-stroke: 2px var(--K); }
+            .hero-side { max-width: 100%; }
+            .hero-year { display: none; }
+            .hero-badge { font-size: 0.75rem; padding: 10px 12px; line-height: 1.6; }
+            .divider-bar { height: 48px; margin-top: 18px; }
+            .divider-scroll { font-size: 1.4rem; letter-spacing: 2px; }
+
+            /* ── EQUIPO ── */
+            .equipo-header { padding: 28px 16px 16px; }
+            .equipo-header h1 { font-size: clamp(2.8rem, 17vw, 6rem); }
+            /* El subtitle del equipo en móvil: reducir stroke */
+            .equipo-header h1 span { -webkit-text-stroke: 2px var(--K) !important; font-size: clamp(1.1rem, 4.5vw, 2rem) !important; }
+
+            .miembro-row { grid-template-columns: 30px 1fr auto; }
+            .miembro-num { font-size: 0.6rem; padding: 0 8px; }
+            .miembro-nombre { font-size: clamp(1.6rem, 8.5vw, 3rem); padding: 16px 0; letter-spacing: -1px; }
+            .miembro-link { margin-right: 10px; font-size: 0.6rem; padding: 9px 9px; border-width: 2px; letter-spacing: 0; }
+
+            footer { flex-direction: column; gap: 8px; text-align: center; padding: 20px 16px; }
+
+            /* ── LEYENDAS HEADER ── */
+            .leyendas-hero {
+                grid-template-columns: 1fr;
+                padding: 28px 16px; gap: 18px;
+            }
+            .leyendas-hero h2 { font-size: clamp(2.4rem, 12vw, 5rem); letter-spacing: -1px; }
+            .leyendas-hero p { font-size: 0.82rem; line-height: 1.6; }
+
+            /* ── COMIC CARDS ──
+               En móvil: una columna, imagen arriba, info abajo */
+            .comic-card {
+                grid-template-columns: 1fr;
+                margin: 14px;
+                border-width: 5px;
+                box-shadow: 5px 5px 0 var(--K);
+            }
+            .comic-card:hover { transform: none; box-shadow: 5px 5px 0 var(--K); }
+
+            /* Forzar imagen arriba en todas las cards */
+            .media-side { order: -1 !important; min-height: 220px; }
+            .info-side { padding: 20px 16px; gap: 12px; order: 1; }
+
+            .chapter-tag { font-size: 0.65rem; padding: 5px 10px; }
+            .info-side h2 { font-size: clamp(2.2rem, 10vw, 4rem); letter-spacing: -1px; margin-top: 10px; }
+            .desc-comic { font-size: 0.82rem; line-height: 1.5; padding-left: 12px; border-left-width: 3px; }
+            .price-tag { font-size: clamp(3rem, 14vw, 5rem); -webkit-text-stroke: 2px var(--K); letter-spacing: -2px; }
+            .price-label { font-size: 0.7rem; }
+            .btn-reservar { font-size: 1.3rem; padding: 18px; letter-spacing: 1px; }
+
+            /* Carrusel dots más grandes (más fácil de tocar) */
+            .c-dot { width: 13px; height: 13px; }
+            .c-arrow { padding: 10px 14px; font-size: 1.1rem; }
+
+            /* ── WEBTOON ── */
+            .webtoon-section { margin: 14px; padding: 50px 20px; border-width: 5px; box-shadow: 5px 5px 0 var(--K); }
+            .webtoon-section h2 { font-size: clamp(2rem, 10vw, 4rem); }
+            .webtoon-sub { font-size: 0.85rem; margin-bottom: 20px; }
+            .btn-webtoon { padding: 20px 40px; font-size: 1.8rem; border-width: 4px; }
+
+            /* ── MERCH ── */
+            .merch-section { min-height: calc(100vh - 88px); }
+            .merch-content { padding: 20px 16px 80px; }
+            .merch-eyebrow { font-size: 0.72rem; letter-spacing: 2px; margin-bottom: 14px; }
+            .merch-title { font-size: clamp(3.5rem, 18vw, 8rem); letter-spacing: -3px; margin-bottom: 8px; }
+            .merch-title .outline-w { -webkit-text-stroke: 2px var(--W); }
+            .merch-sub { font-size: 0.85rem; margin-bottom: 30px; }
+            .btn-store { padding: 22px 40px; font-size: 1.6rem; border-width: 5px; box-shadow: 6px 6px 0 rgba(255,0,255,0.3); }
+            .merch-marquee { font-size: 0.9rem; letter-spacing: 2px; }
+            .merch-marquee span { margin-right: 30px; }
+        }
+
+        /* Extra pequeño — iPhone SE etc. */
+        @media (max-width: 380px) {
+            nav button { font-size: 0.62rem; }
+            .hero-title { font-size: clamp(3.2rem, 22vw, 5.5rem); }
+            .miembro-nombre { font-size: clamp(1.4rem, 9vw, 2.5rem); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cursor" id="cursor"></div>
+
+    <div id="loader">
+        <div class="loader-text">LOOK</div>
+        <div class="loader-bar"><div class="loader-fill"></div></div>
+    </div>
+
+    <nav>
+        <div class="nav-logo">LAS™</div>
+        <div class="nav-links">
+            <button onclick="openTab('inicio', this)" class="active">INICIO</button>
+            <button onclick="openTab('equipo', this)">EQUIPO</button>
+            <button onclick="openTab('leyendas', this)">LEYENDAS</button>
+            <button onclick="openTab('merch', this)">MERCH</button>
+        </div>
+    </nav>
+
+    <!-- ══ INICIO ══ -->
+    <div id="inicio" class="tab-content active">
+        <div class="ticker-wrap">
+            <div class="ticker-inner">
+                <span>LOOK ANIMATION STUDIOS</span>
+                <span>LEYENDAS OMNES RELIQUIAM VOLUNT</span>
+                <span>REPARTIENDO ARTE AL MUNDO</span>
+                <span>WEBCOMIC EN WEBTOON</span>
+                <span>CAPÍTULO 3 YA DISPONIBLE</span>
+                <span>LOOK ANIMATION STUDIOS</span>
+                <span>LEYENDAS OMNES RELIQUIAM VOLUNT</span>
+                <span>REPARTIENDO ARTE AL MUNDO</span>
+                <span>WEBCOMIC EN WEBTOON</span>
+                <span>CAPÍTULO 3 YA DISPONIBLE</span>
+            </div>
+        </div>
+        <div class="hero">
+            <div class="hero-grid">
+                <div>
+                    <h1 class="hero-title">
+                        LOOK<br>
+                        <span class="outline">ANIMATION</span><br>
+                        STUDIOS
+                    </h1>
+                </div>
+                <div class="hero-side">
+                    <div class="hero-badge">
+                        REPARTIENDO ARTE AL MUNDO —<br>
+                        Somos un grupo creativo que produce<br>
+                        el webcomic Leyendas Omnes<br>
+                        Reliquiam Volunt.
+                    </div>
+                    <div class="hero-year">26</div>
+                </div>
+            </div>
+            <div class="divider-bar">
+                <div class="divider-scroll">
+                    ◆ MOVA ◆ YALSEC ◆ ALONDRA ◆ CONT ◆ LOOK ANIMATION STUDIOS ◆ MOVA ◆ YALSEC ◆ ALONDRA ◆ CONT ◆ LOOK ANIMATION STUDIOS ◆ MOVA ◆ YALSEC ◆ ALONDRA ◆ CONT ◆ LOOK ANIMATION STUDIOS &nbsp;
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ EQUIPO ══ -->
+    <div id="equipo" class="tab-content">
+        <div class="equipo-header">
+            <h1>EQUIPO<br>
+                <span style="color:var(--K); -webkit-text-stroke: 3px var(--K); font-size: clamp(2rem, 5vw, 4rem); letter-spacing: 0;">
+                    LOOK ANIMATION STUDIOS
+                </span>
+            </h1>
+        </div>
+        <div class="miembro-row">
+            <div class="miembro-num">01</div>
+            <div class="miembro-nombre">MOVA</div>
+            <a href="#" class="miembro-link">[ PORTAFOLIO ]</a>
+        </div>
+        <div class="miembro-row">
+            <div class="miembro-num">02</div>
+            <div class="miembro-nombre">YALSEC</div>
+            <a href="#" class="miembro-link">[ PORTAFOLIO ]</a>
+        </div>
+        <div class="miembro-row">
+            <div class="miembro-num">03</div>
+            <div class="miembro-nombre">ALONDRA</div>
+            <a href="#" class="miembro-link">[ PORTAFOLIO ]</a>
+        </div>
+        <div class="miembro-row">
+            <div class="miembro-num">04</div>
+            <div class="miembro-nombre">CONT</div>
+            <a href="#" class="miembro-link">[ PORTAFOLIO ]</a>
+        </div>
+        <footer>
+            <div class="footer-logo">LAS™</div>
+            <span>© 2026 LOOK ANIMATION STUDIOS</span>
+            <span style="color:var(--M);">LEYENDAS OMNES RELIQUIAM VOLUNT</span>
+        </footer>
+    </div>
+
+    <!-- ══ LEYENDAS ══ -->
+    <div id="leyendas" class="tab-content">
+        <div class="leyendas-hero">
+            <h2>LEYENDAS<br>OMNES<br>RELIQUIAM<br>VOLUNT</h2>
+            <p>
+                Supervivencia. Misterio. Un destino que pende de un hilo.<br><br>
+                Sigue la historia de Sebas, Nayara y un grupo de supervivientes
+                en un mundo donde cada elección importa.<br><br>
+                Lee los capítulos en Webtoon o reserva las ediciones físicas exclusivas.
+            </p>
+        </div>
+
+        <!-- CAPÍTULO 3 -->
+        <div class="comic-card">
+            <div class="info-side">
+                <div>
+                    <span class="chapter-tag">NUEVO CAPÍTULO</span>
+                    <h2 style="margin-top:16px;">CAPÍTULO<br>3</h2>
+                </div>
+                <p class="desc-comic">
+                    Después de que Sebas quedara atrapado en una dimensión alejada de la mano de Dios,
+                    Nayara y un grupo de supervivientes lo resguardan... pero no por mucho tiempo.
+                </p>
+                <div class="price-row">
+                    <div class="price-tag">2,50€</div>
+                    <div class="price-label">edición<br>física</div>
+                </div>
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLScaeB52Vi7PgCPSY_OW7T-TwM_Xo2ADtT93krtULVjJkxEKzQ/viewform?usp=header" target="_blank" class="btn-reservar">
+                    <span>RESERVAR AHORA</span>
+                </a>
+            </div>
+            <div class="media-side">
+                <button class="c-arrow left" onclick="moveCarousel('cr1',-1)">❮</button>
+                <div class="carousel-track" id="cr1">
+                    <div class="carousel-slide"><div class="slide-placeholder">◆</div></div>
+                    <div class="carousel-slide"><div class="slide-placeholder">◆◆</div></div>
+                    <div class="carousel-slide"><div class="slide-placeholder">◆◆◆</div></div>
+                </div>
+                <button class="c-arrow right" onclick="moveCarousel('cr1',1)">❯</button>
+                <div class="carousel-nav" id="dots-cr1">
+                    <div class="c-dot active" onclick="goToSlide('cr1',0)"></div>
+                    <div class="c-dot" onclick="goToSlide('cr1',1)"></div>
+                    <div class="c-dot" onclick="goToSlide('cr1',2)"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOMO ESPECIAL -->
+        <div class="comic-card">
+            <div class="info-side">
+                <div>
+                    <span class="chapter-tag">EDICIÓN ESPECIAL</span>
+                    <h2 style="margin-top:16px;">TOMO<br>ESPECIAL</h2>
+                </div>
+                <p class="desc-comic">
+                    ¡Los 4 primeros capítulos en un solo volumen!
+                    Edición exclusiva con contenido extra. Próximamente.
+                </p>
+                <div class="price-row">
+                    <div class="price-tag">7,00€</div>
+                    <div class="price-label">4 capítulos<br>+ extras</div>
+                </div>
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLScaeB52Vi7PgCPSY_OW7T-TwM_Xo2ADtT93krtULVjJkxEKzQ/viewform?usp=header" target="_blank" class="btn-reservar">
+                    <span>RESERVAR TOMO</span>
+                </a>
+            </div>
+            <div class="media-side">
+                <button class="c-arrow left" onclick="moveCarousel('cr2',-1)">❮</button>
+                <div class="carousel-track" id="cr2">
+                    <div class="carousel-slide">
+                        <div class="slide-placeholder" style="background:repeating-linear-gradient(135deg,#1a1a1a 0px,#1a1a1a 20px,#111 20px,#111 40px);">◈</div>
+                    </div>
+                    <div class="carousel-slide"><div class="slide-placeholder">◈◈</div></div>
+                </div>
+                <button class="c-arrow right" onclick="moveCarousel('cr2',1)">❯</button>
+                <div class="carousel-nav" id="dots-cr2">
+                    <div class="c-dot active" onclick="goToSlide('cr2',0)"></div>
+                    <div class="c-dot" onclick="goToSlide('cr2',1)"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WEBTOON CTA -->
+        <div class="webtoon-section">
+            <h2>¡LEE GRATIS<br>EN WEBTOON!</h2>
+            <p class="webtoon-sub">Nuevos capítulos disponibles online.</p>
+            <a href="https://www.webtoons.com/es/canvas/leyendas-omnes-reliquiam-volunt/list?title_no=1122978" target="_blank" class="btn-webtoon">→ WEBTOON</a>
+        </div>
+
+        <footer>
+            <div class="footer-logo">LAS™</div>
+            <span>© 2026 LOOK ANIMATION STUDIOS</span>
+            <span style="color:var(--M);">LEYENDAS OMNES RELIQUIAM VOLUNT</span>
+        </footer>
+    </div>
+
+    <!-- ══ MERCH ══ -->
+    <div id="merch" class="tab-content">
+        <div class="merch-section">
+            <div class="merch-bg-text">
+                COMPRAR&nbsp;&nbsp;COMPRAR&nbsp;&nbsp;COMPRAR&nbsp;&nbsp;COMPRAR&nbsp;&nbsp;COMPRAR&nbsp;&nbsp;
+            </div>
+            <div class="merch-content">
+                <span class="merch-eyebrow">◆ TIENDA OFICIAL ◆</span>
+                <div class="merch-title">MERCH<br><span class="outline-w">OFICIAL</span></div>
+                <p class="merch-sub">Ropa, posters y más. Envío a todo el mundo.</p>
+                <a href="https://my-store-102d461.creator-spring.com/" target="_blank" class="btn-store">
+                    IR A LA TIENDA →
+                </a>
+            </div>
+            <div class="merch-marquee-wrap">
+                <div class="merch-marquee">
+                    <span>LOOK ANIMATION STUDIOS</span>
+                    <span>LEYENDAS OMNES RELIQUIAM VOLUNT</span>
+                    <span>MERCH OFICIAL</span>
+                    <span>ENVÍO MUNDIAL</span>
+                    <span>LOOK ANIMATION STUDIOS</span>
+                    <span>LEYENDAS OMNES RELIQUIAM VOLUNT</span>
+                    <span>MERCH OFICIAL</span>
+                    <span>ENVÍO MUNDIAL</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── LOADER ──
+        window.addEventListener('load', () => {
+            setTimeout(() => document.getElementById('loader').classList.add('hidden'), 1500);
+        });
+
+        // ── CURSOR (solo desktop) ──
+        const cursor = document.getElementById('cursor');
+        if (window.matchMedia('(pointer: fine)').matches) {
+            document.addEventListener('mousemove', e => {
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+            });
+        }
+
+        // ── TABS ──
+        function openTab(id, btn) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ── CARRUSELES ──
+        const carouselState = {};
+
+        function initCarousel(id) {
+            if (!carouselState[id]) {
+                const track = document.getElementById(id);
+                if (!track) return;
+                carouselState[id] = { index: 0, total: track.querySelectorAll('.carousel-slide').length };
+
+                // Swipe táctil
+                let startX = 0;
+                track.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+                track.addEventListener('touchend', e => {
+                    const diff = startX - e.changedTouches[0].clientX;
+                    if (Math.abs(diff) > 40) moveCarousel(id, diff > 0 ? 1 : -1);
+                });
+            }
+        }
+
+        function updateCarousel(id) {
+            const state = carouselState[id];
+            document.getElementById(id).style.transform = `translateX(-${state.index * 100}%)`;
+            document.querySelectorAll(`#dots-${id} .c-dot`).forEach((d, i) => d.classList.toggle('active', i === state.index));
+        }
+
+        function moveCarousel(id, step) {
+            initCarousel(id);
+            const s = carouselState[id];
+            s.index = (s.index + step + s.total) % s.total;
+            updateCarousel(id);
+        }
+
+        function goToSlide(id, index) {
+            initCarousel(id);
+            carouselState[id].index = index;
+            updateCarousel(id);
+        }
+
+        ['cr1','cr2'].forEach(initCarousel);
+
+        // Auto-advance
+        setInterval(() => { ['cr1','cr2'].forEach(id => { if (carouselState[id]) moveCarousel(id, 1); }); }, 4000);
+    </script>
+</body>
+</html>
